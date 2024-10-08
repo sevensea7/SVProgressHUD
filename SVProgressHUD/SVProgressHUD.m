@@ -28,7 +28,9 @@ static const CGFloat SVProgressHUDUndefinedProgress = -1;
 static const CGFloat SVProgressHUDDefaultAnimationDuration = 0.15f;
 static const CGFloat SVProgressHUDVerticalSpacing = 12.0f;
 static const CGFloat SVProgressHUDHorizontalSpacing = 12.0f;
-static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
+static const CGFloat SVProgressHUDLabelSpacing = 10.0f;
+static const CGFloat SVProgressHUDLabelWidth = 70.0f;
+static const CGFloat SVProgressHUDPadding = 30.0f;
 
 
 @interface SVProgressHUD ()
@@ -76,7 +78,6 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
     return sharedView;
 }
 
-#if !defined(SV_APP_EXTENSIONS)
 + (UIWindow *)mainWindow {
     if (@available(iOS 13.0, *)) {
         for (UIWindowScene* windowScene in [UIApplication sharedApplication].connectedScenes) {
@@ -95,7 +96,6 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
 #endif
     }
 }
-#endif
 
 + (NSBundle *)imageBundle {
 #if defined(SWIFTPM_MODULE_BUNDLE)
@@ -369,15 +369,9 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
         
         NSBundle *imageBundle = [SVProgressHUD imageBundle];
         
-        if (@available(iOS 13.0, *)) {
-            _infoImage = [UIImage systemImageNamed:@"info.circle"];
-            _successImage = [UIImage systemImageNamed:@"checkmark"];
-            _errorImage = [UIImage systemImageNamed:@"xmark"];
-        } else {
-            _infoImage = [UIImage imageWithContentsOfFile:[imageBundle pathForResource:@"info" ofType:@"png"]];
-            _successImage = [UIImage imageWithContentsOfFile:[imageBundle pathForResource:@"success" ofType:@"png"]];
-            _errorImage = [UIImage imageWithContentsOfFile:[imageBundle pathForResource:@"error" ofType:@"png"]];
-        }
+        _infoImage = [UIImage new];
+        _successImage = [UIImage imageWithContentsOfFile:[imageBundle pathForResource:@"success" ofType:@"png"]];
+        _errorImage = [UIImage imageWithContentsOfFile:[imageBundle pathForResource:@"error" ofType:@"png"]];
         
         _ringThickness = 2.0f;
         _ringRadius = 18.0f;
@@ -423,7 +417,11 @@ static const CGFloat SVProgressHUDLabelSpacing = 8.0f;
                                                      attributes:@{NSFontAttributeName: self.statusLabel.font}
                                                         context:NULL];
         labelHeight = ceilf(CGRectGetHeight(labelRect));
-        labelWidth = ceilf(CGRectGetWidth(labelRect));
+        if (imageUsed) {
+            labelWidth = MAX(ceilf(CGRectGetWidth(labelRect)), SVProgressHUDLabelWidth);
+        } else {
+            labelWidth = ceilf(CGRectGetWidth(labelRect)) + SVProgressHUDPadding;
+        }
     }
     
     // Calculate hud size based on content
